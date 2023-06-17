@@ -6,7 +6,7 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Current File",
+            "name": "Java current file",
             "request": "launch",
             "mainClass": "${file}",
             "args": [
@@ -20,6 +20,20 @@
             "request": "launch",
             "mainClass": "org.vxs.translator.PlSqlTranslatorApp",
             "projectName": "vxs-plsql-translator"
+        },
+        {
+            "name": "Launch JassToTs C#",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-c#",
+            "program": "${workspaceFolder}/VXsPlSqlTranslator/bin/Debug/net7.0/VXsPlSqlTranslator.exe",
+            "args": [
+                "-c",
+                "config.json"
+            ],
+            "cwd": "${workspaceFolder}/VXsPlSqlTranslator",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
         }
     ]
 }
