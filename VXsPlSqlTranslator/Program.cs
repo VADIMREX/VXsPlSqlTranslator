@@ -75,4 +75,9 @@ switch (settings.mode) {
 
 var data = source.Data();
 
-foreach(var c in data) Console.Write(c);
+var lexer = new VXs.Lexer.PlSqlLexer();
+foreach(var str in data) {
+    foreach(var token in lexer.Parse(str)) {
+        Console.WriteLine(token);
+    }
+}
