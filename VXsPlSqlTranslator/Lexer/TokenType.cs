@@ -8,4 +8,5 @@ public enum TokenType {
     Name,
     Special,
     Commentary,
+    Error,
 }
