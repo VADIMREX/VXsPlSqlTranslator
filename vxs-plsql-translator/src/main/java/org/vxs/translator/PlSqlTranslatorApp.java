@@ -1,5 +1,6 @@
 package org.vxs.translator;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,9 +21,20 @@ public class PlSqlTranslatorApp {
         
         final HashMap<String,IManInfo> man = new HashMap<String,IManInfo>();
         man.putAll(Map.ofEntries(
+            Map.entry("-h", new IManInfo() {
+                @Override
+                public String getDesctiption() { return "this text"; }
+                @Override
+                public int action(int argNo) {
+                    man.forEach((k,v)-> {
+                        System.out.println(String.format("%s\t%s", k, v.getDesctiption()));
+                    });
+                    return settings.args.length;
+                }
+            }),
             Map.entry("-input", new IManInfo() {
                 @Override
-                public String getDesctiption() { return "please enter arguments, empty line for continue"; }
+                public String getDesctiption() { return "interactive mode"; }
                 @Override
                 public int action(int argNo) {
                     System.out.println("please enter arguments, empty line for continue");
@@ -43,17 +55,6 @@ public class PlSqlTranslatorApp {
                     scan.close();
                     settings.args = lst.toArray(new String[0]);
                     return -1;
-                }
-            }),
-            Map.entry("-h", new IManInfo() {
-                @Override
-                public String getDesctiption() { return "this text"; }
-                @Override
-                public int action(int argNo) {
-                    man.forEach((k,v)-> {
-                        System.out.println(String.format("%s\t%s", k, v.getDesctiption()));
-                    });
-                    return settings.args.length;
                 }
             }),
             Map.entry("-i", new IManInfo() {
@@ -86,6 +87,9 @@ public class PlSqlTranslatorApp {
             i = man.get(settings.args[i]).action(i);
         }
 
-
+        var inFile = Paths.get(settings.inPath).toFile();
+        if (inFile.isDirectory()) {
+            
+        }
     }
 }
