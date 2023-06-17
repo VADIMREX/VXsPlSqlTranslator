@@ -1,3 +1,3 @@
 public interface ISource {
-    IEnumerable<char> Data();
+    IEnumerable<string> Data();
 }
