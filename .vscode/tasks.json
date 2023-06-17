@@ -1,8 +1,8 @@
 {
     "version": "2.0.0",
     "tasks": [
-        
         {
+            "label": "build java",
             "type": "java (buildArtifact)",
             "mainClass": "org.vsx.translator.plsqlTranslatorApp",
             "targetPath": "${workspaceFolder}/${workspaceFolderBasename}.jar",
@@ -10,9 +10,19 @@
                 "${compileOutput}",
                 "${dependencies}"
             ],
-            "problemMatcher": [],
-            "label": "java: exportjar:JassToTs"
-        }
-        
+            "problemMatcher": []
+        },
+        {
+            "label": "build-c#",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/VXsPlSqlTranslator/VXsPlSqlTranslator.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
     ]
 }
