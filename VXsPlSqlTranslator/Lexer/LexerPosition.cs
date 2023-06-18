@@ -2,22 +2,22 @@ namespace VXs.Lexer;
 
 public class LexerPosition
 {
-    public int i = 0;
     public int pos = 0;
     public int line = 0;
     public int col = 0;
 
-    public int next => i + 1;
+    public int next => pos + 1;
 
     public void NewLine()
     {
         line++;
-        col = 0;
+        col = -1;
     }
+
+    public LexerPosition Clone() => new LexerPosition { pos = pos, line = line, col = col };
 
     public static LexerPosition operator ++(LexerPosition self)
     {
-        self.i++;
         self.pos++;
         self.col++;
         return self;
@@ -25,7 +25,6 @@ public class LexerPosition
 
     public static LexerPosition operator +(LexerPosition self, int arg)
     {
-        self.i += arg;
         self.pos += arg;
         self.col += arg;
         return self;
@@ -33,7 +32,6 @@ public class LexerPosition
 
     public static LexerPosition operator --(LexerPosition self)
     {
-        self.i--;
         self.pos--;
         self.col--;
         return self;
@@ -41,11 +39,12 @@ public class LexerPosition
 
     public static LexerPosition operator -(LexerPosition self, int arg)
     {
-        self.i -= arg;
         self.pos -= arg;
         self.col -= arg;
         return self;
     }
 
-    public static implicit operator int(LexerPosition self) => self.i;
+    public static implicit operator int(LexerPosition self) => self.pos;
+
+    public override string ToString() => $"Ln {line}, Col {col} ({pos} pos)";
 }
