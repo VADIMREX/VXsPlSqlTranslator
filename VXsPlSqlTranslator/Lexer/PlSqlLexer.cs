@@ -60,7 +60,7 @@ public class PlSqlLexer
         { "NOCOMPRESS", (TokenType.Keyword, "") },
         { "NOT", (TokenType.Operator, "") },
         { "NOWAIT", (TokenType.Keyword, "") },
-        { "NULL", (TokenType.Keyword, "") },
+        { "NULL", (TokenType.Value, "null") },
         { "OF", (TokenType.Keyword, "") },
         { "ON", (TokenType.Keyword, "") },
         { "OPTION", (TokenType.Keyword, "") },
@@ -341,6 +341,9 @@ public class PlSqlLexer
         { "WRITE", (TokenType.Keyword, "") },
         { "YEAR", (TokenType.Keyword, "") },
         { "ZONE", (TokenType.Keyword, "") },
+        //
+        { "TRUE", (TokenType.Value, "boolean") },
+        { "FALSE", (TokenType.Value, "boolean") },
     };
 
     Token? InlineComment(LexerPosition pos, string source)
