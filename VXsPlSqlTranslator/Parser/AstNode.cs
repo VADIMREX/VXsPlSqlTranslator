@@ -47,7 +47,9 @@ public abstract class AstNodeParser : AstNode {
         
     protected abstract void InitStates();
 
-    protected virtual void Parse(IEnumerator<Token> enumerator) {
+    protected abstract void Parse(IEnumerator<Token> enumerator);
+
+    protected virtual void ParseNext(IEnumerator<Token> enumerator) {
         int state = 0;
         StateResult result = StateResult.Continue;
         while (enumerator.MoveNext()) {
@@ -62,6 +64,23 @@ public abstract class AstNodeParser : AstNode {
             if (StateResult.Continue == result) continue;
             if (StateResult.Return == result) return;        
         }
+    }
+
+    protected virtual void ParseCurrent(IEnumerator<Token> enumerator) {
+        int state = 0;
+        StateResult result = StateResult.Continue;
+        do {
+            var token = enumerator.Current;
+            if (TokenType.Commentary == token.Type) {
+                continue;
+            }
+            if (TokenType.Error == token.Type) {
+                continue;
+            }
+            (state, result) = stateActions[state](enumerator);
+            if (StateResult.Continue == result) continue;
+            if (StateResult.Return == result) return;        
+        } while (enumerator.MoveNext());
     }
 
     public AstNodeParser(IEnumerator<Token> enumerator, string type) : base(enumerator.Current, type) {
