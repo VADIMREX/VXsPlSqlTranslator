@@ -80,5 +80,5 @@ var parser = new VXs.Parser.PlSqlParser();
 foreach(var str in data) {
     var tokens = lexer.Parse(str);
     var tree = parser.Parse(tokens);
-    
+    Console.WriteLine(tree);
 }

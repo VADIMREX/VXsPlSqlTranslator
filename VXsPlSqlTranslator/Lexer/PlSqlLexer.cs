@@ -46,7 +46,7 @@ public class PlSqlLexer
         { "HAVING", (TokenType.Keyword, "") },
         { "IDENTIFIED", (TokenType.Keyword, "") },
         { "IF", (TokenType.Keyword, "") },
-        { "IN", (TokenType.Operator, "") },
+        { "IN", (TokenType.Keyword, "") },
         { "INDEX", (TokenType.Keyword, "") },
         { "INDEXES", (TokenType.Keyword, "") },
         { "INSERT", (TokenType.Keyword, "") },
