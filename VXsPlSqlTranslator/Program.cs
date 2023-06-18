@@ -23,7 +23,7 @@ man.Add("-input", new ("interactive mode", i => {
     while (j < 2)
     {
         var s = Console.ReadLine();
-        if ("" == s)
+        if (string.IsNullOrEmpty(s))
         {
             j++;
             continue;
