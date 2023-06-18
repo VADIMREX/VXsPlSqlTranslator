@@ -4,6 +4,7 @@ using System.Text;
 using VXs.Lexer;
 
 public class AstNode : IAstNode {
+   
     public Token Token { get; set; }
     public string Type { get; set; }
 
@@ -34,4 +35,37 @@ public class AstNode : IAstNode {
     }
 
     public override string ToString() => ToString(0);
+}
+
+public enum StateResult {
+    Return,
+    Continue
+}
+
+public abstract class AstNodeParser : AstNode {
+    protected List<Func<IEnumerator<Token>, (int, StateResult)>> stateActions = new();
+        
+    protected abstract void InitStates();
+
+    protected virtual void Parse(IEnumerator<Token> enumerator) {
+        int state = 0;
+        StateResult result = StateResult.Continue;
+        while (enumerator.MoveNext()) {
+            var token = enumerator.Current;
+            if (TokenType.Commentary == token.Type) {
+                continue;
+            }
+            if (TokenType.Error == token.Type) {
+                continue;
+            }
+            (state, result) = stateActions[state](enumerator);
+            if (StateResult.Continue == result) continue;
+            if (StateResult.Return == result) return;        
+        }
+    }
+
+    public AstNodeParser(IEnumerator<Token> enumerator, string type) : base(enumerator.Current, type) {
+        InitStates();
+        Parse(enumerator);
+    }
 }

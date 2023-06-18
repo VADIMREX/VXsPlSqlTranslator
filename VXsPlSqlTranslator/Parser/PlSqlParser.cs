@@ -143,113 +143,117 @@ public class PlSqlParser {
         }
     }
 
-    class PlSqlProcedure : AstNode {
+
+    class PlSqlProcedure : AstNodeParser {
         public string Name = "";
 
-        public PlSqlProcedure(IEnumerator<Token> enumerator) : base(enumerator.Current, "procedure") {
-            int state = 0;
-            while (enumerator.MoveNext()) {
-                var token = enumerator.Current;
-                if (TokenType.Commentary == token.Type) {
-                    continue;
-                }
-                if (TokenType.Error == token.Type) {
-                    continue;
-                }
-                switch(state) {
-                    case 0:
-                        if (TokenType.Name == token.Type) {
-                            Name = token.Text;
-                            state = 1;
-                            continue;
-                        }
+        protected virtual (int, StateResult) State0(IEnumerator<Token> enumerator) {
+            var token = enumerator.Current;
+            if (TokenType.Name == token.Type) {
+                Name = token.Text;
+                return (1, StateResult.Continue);
+            }
+            #warning todo error
+            return (-1, StateResult.Return);
+        }
+
+        protected virtual (int, StateResult) State1(IEnumerator<Token> enumerator) {
+            var token = enumerator.Current;
+            if (TokenType.Special == token.Type) {
+                switch(token.Text) {
+                    case "(": return (2, StateResult.Continue);
+                    case ";": return (-1, StateResult.Return);
+                    default:
                         #warning todo error
-                        return;
-                    case 1:
-                        if (TokenType.Special == token.Type) {
-                            switch(token.Text) {
-                                case "(":
-                                    state = 2;
-                                    continue;
-                                case ";":
-                                    return;
-                                default:
-                                    #warning todo error
-                                    return;
-                            }
-                        }
-                        if (TokenType.Keyword == token.Type) {
-                            state = 3;
-                            goto case 3;
-                        }
-                        #warning todo error
-                        return;
-                    case 2:
-                        AddChild(new PlSqlArgument(enumerator));
-                        token = enumerator.Current;
-                        if (TokenType.Special == token.Type) {
-                            switch(token.Text) {
-                                case ")":
-                                    state = 3;
-                                    continue;
-                                case ";":
-                                    return;
-                            }
-                            continue;
-                        }
-                        #warning todo error
-                        return;
-                    case 3:
-                        if (TokenType.Keyword == token.Type) {
-                            switch(token.GetPlSqlText()) {
-                                case "IS":
-                                    state = 4;
-                                    continue;
-                                case "AS":
-                                    state = 5;
-                                    continue;
-                                default:
-                                    #warning todo error
-                                    return;
-                            }
-                        }
-                        #warning todo error
-                        return;
-                    case 4:
-                        if (TokenType.Keyword == token.Type) {
-                            switch(token.GetPlSqlText()) {
-                                case "PROCEDURE":
-                                    AddChild(new PlSqlProcedure(enumerator));
-                                    continue;
-                                case "FUNCTION":
-                                    AddChild(new PlSqlFunction(enumerator));
-                                    continue;
-                                case "TYPE":
-                                    #warning todo type
-                                    continue;
-                                case "CURSOR":
-                                    #warning todo cursor
-                                    continue;
-                                case "BEGIN":
-                                    #warning todo block
-                                    return;
-                                default:
-                                    #warning todo error
-                                    return;
-                            }
-                        }
-                        else if (TokenType.Name == Token.Type) {
-                            AddChild(new PlSqlVariable(enumerator));
-                            continue;
-                        }
-                        #warning todo error
-                        return;
-                    case 5:
-                        #warning todo external procedure
-                        return;
+                        return (-1, StateResult.Return);
                 }
             }
+            if (TokenType.Keyword == token.Type) {
+                return State3(enumerator);
+            }
+            #warning todo error
+            return (-1, StateResult.Return);
         }
+
+        protected virtual (int, StateResult) State2(IEnumerator<Token> enumerator) {
+            AddChild(new PlSqlArgument(enumerator));
+            var token = enumerator.Current;
+            if (TokenType.Special == token.Type) {
+                switch(token.Text) {
+                    case ")": return (3, StateResult.Continue);
+                    case ";": return (-1, StateResult.Return);
+                    case ",": return (2, StateResult.Continue);
+                    default:
+                        #warning todo error
+                        return (-1, StateResult.Return);
+                }
+            }
+            #warning todo error
+            return (-1, StateResult.Return);
+        }
+
+        protected virtual (int, StateResult) State3(IEnumerator<Token> enumerator) {
+            var token = enumerator.Current;
+            if (TokenType.Keyword == token.Type) {
+                switch(token.GetPlSqlText()) {
+                    case "IS": return (4, StateResult.Continue);
+                    case "AS": return (5, StateResult.Continue);
+                    default:
+                       #warning todo error
+                        return (-1, StateResult.Return);
+                }
+            }
+            #warning todo error
+            return (-1, StateResult.Return);
+        }
+
+        protected virtual (int, StateResult) State4(IEnumerator<Token> enumerator) {
+            var token = enumerator.Current;
+            if (TokenType.Keyword == token.Type) {
+                switch(token.GetPlSqlText()) {
+                    case "PROCEDURE":
+                        AddChild(new PlSqlProcedure(enumerator));
+                        return (4, StateResult.Continue);
+                    case "FUNCTION":
+                        AddChild(new PlSqlFunction(enumerator));
+                        return (4, StateResult.Continue);
+                    case "TYPE":
+                        #warning todo type
+                        return (4, StateResult.Continue);
+                    case "CURSOR":
+                        #warning todo cursor
+                        return (4, StateResult.Continue);
+                    case "BEGIN":
+                        #warning todo block
+                        return (-1, StateResult.Return);
+                    default:
+                        #warning todo error
+                        return (-1, StateResult.Return);
+                }
+            }
+            else if (TokenType.Name == Token.Type) {
+                AddChild(new PlSqlVariable(enumerator));
+                return (4, StateResult.Continue);
+            }
+            #warning todo error
+            return (-1, StateResult.Return);
+        }
+
+        protected virtual (int, StateResult) State5(IEnumerator<Token> enumerator) {
+            #warning todo external procedure
+            return (-1, StateResult.Return);
+        }
+        
+        protected override void InitStates() {
+            stateActions.Add(State0);
+            stateActions.Add(State1);
+            stateActions.Add(State2);
+            stateActions.Add(State3);
+            stateActions.Add(State4);
+            stateActions.Add(State5);
+        }
+
+        public PlSqlProcedure(IEnumerator<Token> enumerator) : base(enumerator, "procedure") { }
     }
 
     class PlSqlFunction : AstNode {
@@ -284,12 +288,17 @@ public class PlSqlParser {
         }
     }
 
-    class PlSqlArgument: AstNode {
-        public PlSqlArgument(IEnumerator<Token> enumerator) : base(enumerator.Current, "variable") {
-            int state = 0;
-            while (enumerator.MoveNext()) {
-            }
+    class PlSqlArgument: AstNodeParser {
+        (int, StateResult) State0(IEnumerator<Token> enumerator) {
+            return (-1, StateResult.Return);
         }
+
+        protected override void InitStates()
+        {
+            stateActions.Add(State0);
+        }
+        
+        public PlSqlArgument(IEnumerator<Token> enumerator) : base(enumerator, "argument") { }
     }
 
     public IAstNode Parse(IEnumerable<Token> tokens) {
