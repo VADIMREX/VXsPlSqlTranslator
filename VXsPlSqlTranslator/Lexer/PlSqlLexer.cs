@@ -657,7 +657,7 @@ public class PlSqlLexer
     Token? NQLiteral(LexerPosition pos, string source) {
         var c = source[pos];
         if (pos.next >= source.Length) return new Token(TokenType.Name, pos.line, pos.col, pos.pos, $"{c}");
-        if ('q' != source[pos.next])
+        if ('q' != source[pos.next] && 'Q' != source[pos.next])
             return Identifier(pos, source);
         var start = pos.Clone();
         pos++;
