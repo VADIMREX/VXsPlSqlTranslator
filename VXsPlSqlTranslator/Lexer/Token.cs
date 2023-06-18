@@ -33,4 +33,6 @@ public class Token
     public override string ToString() => string.Format("{0},{1} [{2}]: {3}", Line, Col, Type, Text);
 
     public Token Clone() => new Token(Type, Kind, Line, Col, Pos, Text);
+
+    public static readonly Token None = new Token(TokenType.None, 0, 0, 0, "");
 }
