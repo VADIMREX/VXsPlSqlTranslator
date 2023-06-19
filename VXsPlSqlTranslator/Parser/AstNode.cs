@@ -6,7 +6,7 @@ using VXs.Lexer;
 public class AstNode : IAstNode
 {
 
-    public Token Token { get; set; }
+    public Token StartToken { get; set; }
     public string Type { get; set; }
 
     public IAstNode? Parent { get; set; } = null;
@@ -14,7 +14,7 @@ public class AstNode : IAstNode
 
     public AstNode(Token token, string value)
     {
-        Token = token;
+        StartToken = token;
         Type = value;
     }
 
@@ -33,7 +33,7 @@ public class AstNode : IAstNode
     public string ToString(int level)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"{new string(' ', level * 4)}{Token}: {Type}");
+        sb.AppendLine($"{new string(' ', level * 4)}{StartToken}: {Type}");
         foreach (var node in Childs)
             sb.AppendLine(node.ToString(level + 1));
         return sb.ToString();
