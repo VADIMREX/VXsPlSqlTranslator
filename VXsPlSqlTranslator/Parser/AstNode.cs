@@ -3,33 +3,38 @@ namespace VXs.Parser;
 using System.Text;
 using VXs.Lexer;
 
-public class AstNode : IAstNode {
-   
+public class AstNode : IAstNode
+{
+
     public Token Token { get; set; }
     public string Type { get; set; }
 
     public IAstNode? Parent { get; set; } = null;
     public List<IAstNode> Childs { get; set; } = new List<IAstNode>();
 
-    public AstNode(Token token, string value) {
+    public AstNode(Token token, string value)
+    {
         Token = token;
         Type = value;
     }
 
-    public AstNode(Token token, string value, IAstNode parent) : this(token, value) {
+    public AstNode(Token token, string value, IAstNode parent) : this(token, value)
+    {
         Parent = parent;
     }
 
-    public IAstNode AddChild(IAstNode child) {
+    public T AddChild<T>(T child) where T : IAstNode
+    {
         child.Parent = this;
         Childs.Add(child);
         return child;
     }
-    
-    public string ToString(int level) {
-        var sb = new StringBuilder();    
+
+    public string ToString(int level)
+    {
+        var sb = new StringBuilder();
         sb.AppendLine($"{new string(' ', level * 4)}{Token}: {Type}");
-        foreach(var node in Childs)
+        foreach (var node in Childs)
             sb.AppendLine(node.ToString(level + 1));
         return sb.ToString();
     }
@@ -37,53 +42,68 @@ public class AstNode : IAstNode {
     public override string ToString() => ToString(0);
 }
 
-public enum StateResult {
+public enum StateResult
+{
     Return,
     Continue
 }
 
-public abstract class AstNodeParser : AstNode {
+public abstract class AstNodeParser : AstNode
+{
     protected List<Func<IEnumerator<Token>, (int, StateResult)>> stateActions = new();
-        
+
     protected abstract void InitStates();
 
     protected abstract void Parse(IEnumerator<Token> enumerator);
 
-    protected virtual void ParseNext(IEnumerator<Token> enumerator) {
+    protected virtual void ParseNext(IEnumerator<Token> enumerator)
+    {
         int state = 0;
         StateResult result = StateResult.Continue;
-        while (enumerator.MoveNext()) {
+        while (enumerator.MoveNext())
+        {
             var token = enumerator.Current;
-            if (TokenType.Commentary == token.Type) {
+            if (TokenType.Commentary == token.Type)
+            {
                 continue;
             }
-            if (TokenType.Error == token.Type) {
+            if (TokenType.Error == token.Type)
+            {
                 continue;
             }
             (state, result) = stateActions[state](enumerator);
             if (StateResult.Continue == result) continue;
-            if (StateResult.Return == result) return;        
+            if (StateResult.Return == result) return;
         }
     }
 
-    protected virtual void ParseCurrent(IEnumerator<Token> enumerator) {
+    protected virtual void ParseCurrent(IEnumerator<Token> enumerator)
+    {
         int state = 0;
         StateResult result = StateResult.Continue;
-        do {
+        do
+        {
             var token = enumerator.Current;
-            if (TokenType.Commentary == token.Type) {
+            if (TokenType.Commentary == token.Type)
+            {
                 continue;
             }
-            if (TokenType.Error == token.Type) {
+            if (TokenType.Error == token.Type)
+            {
                 continue;
             }
             (state, result) = stateActions[state](enumerator);
             if (StateResult.Continue == result) continue;
-            if (StateResult.Return == result) return;        
+            if (StateResult.Return == result) return;
         } while (enumerator.MoveNext());
     }
 
-    public AstNodeParser(IEnumerator<Token> enumerator, string type) : base(enumerator.Current, type) {
+    public AstNodeParser(Token token, string type) : base(token, type) {
+
+    }
+
+    public AstNodeParser(IEnumerator<Token> enumerator, string type) : base(enumerator.Current, type)
+    {
         InitStates();
         Parse(enumerator);
     }
