@@ -143,10 +143,17 @@ public class PlSqlParser {
     class PlSqlProcedure : PlSqlAnonymousBlock {
         public string Name = "";
 
+        public bool IsExternal = false;
+
+        public bool IsDeclaration = true;
+
+        public List<PlSqlArgument> Arguments = new ();
+
         protected override (int, StateResult) State0(IEnumerator<Token> enumerator) {
             var token = enumerator.Current;
             if (TokenType.Name == token.Type) {
                 Name = token.Text;
+                AddChild(new AstNode(Token, "name"));
                 return (1, StateResult.Continue);
             }
             #warning todo error
@@ -172,7 +179,7 @@ public class PlSqlParser {
         }
 
         protected virtual (int, StateResult) State2(IEnumerator<Token> enumerator) {
-            AddChild(new PlSqlArgument(enumerator));
+            Arguments.Add(AddChild(new PlSqlArgument(enumerator)));
             var token = enumerator.Current;
             if (TokenType.Special == token.Type) {
                 switch(token.Text) {
@@ -267,17 +274,29 @@ public class PlSqlParser {
     }
 
     class PlSqlAnonymousBlock : AstNodeParser {
-        public string Name = "";
+        // public string Name = "";
+
+        public List<PlSqlTypeDeclaration> Types = new ();
+
+        public List<IAstNode> Cursors = new ();
+
+        public List<PlSqlVariable> Variables = new ();
+        
+        public List<PlSqlProcedure> Procedures = new ();
+
+        public List<PlSqlFunction> Functions = new ();
+
+        public PlSqlBlock? Block = null;
 
         protected virtual (int, StateResult) State0(IEnumerator<Token> enumerator) {
             var token = enumerator.Current;
             if (TokenType.Keyword == token.Type) {
                 switch(token.GetPlSqlText()) {
                     case "PROCEDURE":
-                        AddChild(new PlSqlProcedure(enumerator));
+                        Procedures.Add(AddChild(new PlSqlProcedure(enumerator)));
                         return (0, StateResult.Continue);
                     case "FUNCTION":
-                        AddChild(new PlSqlFunction(enumerator));
+                        Functions.Add(AddChild(new PlSqlFunction(enumerator)));
                         return (0, StateResult.Continue);
                     case "TYPE":
                         #warning todo type
@@ -286,7 +305,7 @@ public class PlSqlParser {
                         #warning todo cursor
                         return (0, StateResult.Continue);
                     case "BEGIN":
-                        AddChild(new PlSqlBlock(enumerator));
+                        Block = AddChild(new PlSqlBlock(enumerator));
                         return (-1, StateResult.Return);
                     default:
                         #warning todo error
@@ -328,7 +347,11 @@ public class PlSqlParser {
     class PlSqlName: AstNodeParser {
         (int, StateResult) State0(IEnumerator<Token> enumerator) {
             var token = enumerator.Current;
-            if (TokenType.Name == token.Type) {
+            if (TokenType.Name == token.Type ) {
+                AddChild(new AstNode(token, "name"));
+                return (1, StateResult.Continue);
+            }
+            else if (TokenType.Keyword == token.Type) {
                 AddChild(new AstNode(token, "name"));
                 return (1, StateResult.Continue);
             }
@@ -377,14 +400,30 @@ public class PlSqlParser {
             stateActions.Add(State1);
         }
 
-        public PlSqlName(IEnumerator<Token> enumerator) : base(enumerator, "type") { }
+        public PlSqlName(IEnumerator<Token> enumerator) : base(enumerator, "name") { }
+    }
+
+    class PlSqlTypeDeclaration: AstNodeParser {
+        (int, StateResult) State0(IEnumerator<Token> enumerator) {
+            var token = enumerator.Current;
+            #warning todo error
+            return (-1, StateResult.Return);
+        }
+
+        protected override void Parse(IEnumerator<Token> enumerator) => ParseCurrent(enumerator);
+
+        protected override void InitStates() {
+            stateActions.Add(State0);
+        }
+
+        public PlSqlTypeDeclaration(IEnumerator<Token> enumerator) : base(enumerator, "type declaration") { }
     }
 
     class PlSqlType: AstNodeParser {
         public IAstNode Name;
         (int, StateResult) State0(IEnumerator<Token> enumerator) {
             var token = enumerator.Current;
-            if (TokenType.Name == token.Type) {
+            if (TokenType.Name == token.Type || TokenType.Keyword == token.Type) {
                 Name = AddChild(new PlSqlName(enumerator));
                 token = enumerator.Current;
                 if (TokenType.Special == token.Type) {
@@ -468,9 +507,28 @@ public class PlSqlParser {
             if (TokenType.Special == token.Type) {
                 return (-1, StateResult.Return);
             }
+            if (TokenType.Keyword == token.Type) {
+                return State3(enumerator);
+            }
             #warning todo error
             return (-1, StateResult.Return);
         }
+        
+        (int, StateResult) State3(IEnumerator<Token> enumerator) {
+            var token = enumerator.Current;
+            if (TokenType.Keyword == token.Type) {
+                if ("DEFAULT" == token.GetPlSqlText())
+                    return (4, StateResult.Continue);
+            }
+            #warning todo error
+            return (-1, StateResult.Return);
+        }
+
+        (int, StateResult) State4(IEnumerator<Token> enumerator) {
+            Default = new PlSqlExpression(enumerator, ",");
+            return (-1, StateResult.Return);
+        }
+
 
         protected override void Parse(IEnumerator<Token> enumerator) => ParseCurrent(enumerator);
 
@@ -479,9 +537,83 @@ public class PlSqlParser {
             stateActions.Add(State0);
             stateActions.Add(State1);
             stateActions.Add(State2);
+            stateActions.Add(State3);
+            stateActions.Add(State4);
         }
 
         public PlSqlArgument(IEnumerator<Token> enumerator) : base(enumerator, "argument") { }
+    }
+
+    class PlSqlExpression : AstNodeParser {
+        protected string End;
+        protected override void Parse(IEnumerator<Token> enumerator) => ParseCurrent(enumerator);
+
+        (int, StateResult) State0(IEnumerator<Token> enumerator) {
+            var token = enumerator.Current;
+            switch(token.Type) {
+                case TokenType.Keyword:
+                    goto case TokenType.Name;
+                case TokenType.Name:
+                    AddChild(new PlSqlName(enumerator));
+                    return State1(enumerator);
+                case TokenType.Value:
+                    AddChild(new AstNode(token, "value"));
+                    return (1, StateResult.Continue);
+                case TokenType.Special:
+                    if ("(" == token.Text) {
+                        return (1, StateResult.Continue);
+                    }
+                    goto case TokenType.Name;
+                case TokenType.Operator:
+                    return State1(enumerator);
+            }
+            #warning todo error
+            return (-1, StateResult.Return);
+        }
+
+        (int, StateResult) State1(IEnumerator<Token> enumerator) {
+            var token = enumerator.Current;
+            switch(token.Type) {
+                case TokenType.Keyword:
+                    if ("END" == token.GetPlSqlText()) 
+                        return (-1, StateResult.Return);
+                    goto case TokenType.Operator;
+                case TokenType.Special:
+                    switch (token.Text) {
+                        case "(":
+                            AddChild(new PlSqlExpression(enumerator));
+                            return (0, StateResult.Continue);
+                        case ")":
+                            return (-1, StateResult.Return);
+                        case ",":
+                            if ("," == End) 
+                                return (-1, StateResult.Return);
+                            AddChild(new AstNode(token, "operator"));
+                            return (0, StateResult.Continue);   
+                        case ";":
+                            return (-1, StateResult.Return);
+                    }
+                    #warning todo error
+                    return (-1, StateResult.Return);
+                case TokenType.Operator:
+                    AddChild(new AstNode(token, "operator"));
+                    return (0, StateResult.Continue);
+            }
+            #warning todo error
+            return (-1, StateResult.Return);
+        }
+
+        protected override void InitStates()
+        {
+            stateActions.Add(State0);
+            stateActions.Add(State1);
+        }
+
+        public PlSqlExpression(IEnumerator<Token> enumerator, string end = "") : base(enumerator.Current, "expression") { 
+            End = end;
+            InitStates();
+            Parse(enumerator);
+        }
     }
 
     public IAstNode Parse(IEnumerable<Token> tokens) {
