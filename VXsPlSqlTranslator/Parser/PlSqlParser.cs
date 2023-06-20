@@ -604,9 +604,9 @@ public class PlSqlParser {
                     return (1, StateResult.Continue);
                 case TokenType.Special:
                     if ("(" == token.Text) {
-                        return (1, StateResult.Continue);
+                        return (0, StateResult.Continue);
                     }
-                    goto case TokenType.Name;
+                    goto case TokenType.Operator;
                 case TokenType.Operator:
                     return State1(enumerator);
             }
