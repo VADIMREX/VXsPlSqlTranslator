@@ -318,6 +318,53 @@ public class PlSqlParser {
     class PlSqlBlock : AstNodeParser {
         (int, StateResult) State0(IEnumerator<Token> enumerator) {
             var token = enumerator.Current;
+            switch (token.Type) {
+                case TokenType.Keyword:
+                    switch (token.GetPlSqlText()) {
+                        case "NULL":
+                            AddChild(new AstNode(token, "null"));
+                            break;
+                        case "IF":
+                            break;
+                        case "CASE":
+                            break;
+                        case "LOOP":
+                            break;
+                        case "FOR":
+                            break;
+                        case "WHILE":
+                            break;
+                        case "DECLARE":
+                            AddChild(new PlSqlAnonymousBlock(enumerator));
+                            break;
+                        case "BEGIN":
+                            AddChild(new PlSqlBlock(enumerator));
+                            break;
+                        case "SELECT":
+                            break;
+                        case "WITH":
+                            break;
+                        case "INSERT":
+                            break;
+                        case "UPDATE":
+                            break;
+                        case "MERGE":
+                            break;
+                        case "DELETE":
+                            break;
+                        case "EXECUTE":
+                            break;
+                        case "END":
+                            break;
+                        default:
+                            AddChild(new PlSqlExpression(enumerator));
+                            break;
+                    }
+                    break;
+                case TokenType.Name:
+                    AddChild(new PlSqlExpression(enumerator));
+                    break;
+            }
             return (-1, StateResult.Return);
         }
 
@@ -328,6 +375,12 @@ public class PlSqlParser {
             stateActions.Add(State0);
         }
         public PlSqlBlock(IEnumerator<Token> enumerator) : base(enumerator, "block") { }
+    }
+
+    class PlSqlIF : PlSqlBlock {
+        public PlSqlIF(IEnumerator<Token> enumerator) : base(enumerator) {
+            Type = "if";
+        }
     }
 
     class PlSqlName: AstNodeParser {
