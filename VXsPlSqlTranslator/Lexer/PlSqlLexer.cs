@@ -420,7 +420,7 @@ public class PlSqlLexer
             var start = pos.Clone();
             pos += 2;
             var token = Identifier(pos, source);
-            if (null == token) return new Token(TokenType.Error, pos.line, pos.col, pos.pos, "identifier expected");
+            if (token is null) return new Token(TokenType.Error, pos.line, pos.col, pos.pos, "identifier expected");
             if (pos.next >= source.Length) return new Token(TokenType.Error, pos.line, pos.col, pos.pos, ">> expected");
             if (pos.next + 1 >= source.Length) return new Token(TokenType.Error, pos.line, pos.col, pos.pos, ">> expected");
             if (">>" != source.Substring(pos.next, 2)) return new Token(TokenType.Error, pos.line, pos.col, pos.pos, ">> expected");
@@ -665,7 +665,7 @@ public class PlSqlLexer
         var start = pos.Clone();
         pos++;
         var token = QLiteral(pos, source);
-        if (null == token) return new Token(TokenType.Name, pos.line, pos.col, pos.pos, $"{c}");
+        if (token is null) return new Token(TokenType.Name, pos.line, pos.col, pos.pos, $"{c}");
         if (TokenType.Name == token.Type) token.Text = $"n{token.Text}";
         else if (TokenType.Value == token.Type) {
             token.Kind = "literal nq";
@@ -777,7 +777,7 @@ public class PlSqlLexer
                     break;
             }
 
-            if (null != token)
+            if (token is not null)
             {
                 yield return token;
                 token = null;
