@@ -13,9 +13,6 @@ public class PlSqlExpression : AstNodeParser
     protected virtual (int, StateResult) ParseKeyword(IEnumerator<Token> enumerator) {
         var token = enumerator.Current;
         switch(token.GetPlSqlText()) {
-            case "NULL":
-                AddChild(new AstNode(token, "null"));
-                return (0, StateResult.Continue);
             case "IN":
                 AddChild(new AstNode(token, "operator"));
                 return (0, StateResult.Continue);
@@ -35,7 +32,13 @@ public class PlSqlExpression : AstNodeParser
 
     protected virtual (int, StateResult) ParseValue(IEnumerator<Token> enumerator) {
         var token = enumerator.Current;
-        AddChild(new AstNode(token, "value"));
+
+        if ("NULL" == token.GetPlSqlText()) {
+            AddChild(new AstNode(token, "null"));
+        }
+        else {
+            AddChild(new AstNode(token, "value"));
+        }
         return (0, StateResult.Continue);
     }
 
@@ -51,7 +54,7 @@ public class PlSqlExpression : AstNodeParser
                 enumerator.MoveNext();
                 return (-1, StateResult.Return);
             case ")":
-                AddChild(new AstNode(token, "null"));
+                // is need to add to tree?
                 return (-1, StateResult.Return);
             default:
                 return (0, StateResult.Continue);
@@ -96,35 +99,26 @@ public class PlSqlExpression : AstNodeParser
 
     protected virtual (int, StateResult) State1(IEnumerator<Token> enumerator) {
         var token = enumerator.Current;
-        if (TokenType.Keyword != token.Type) {
-            #warning error
-            return (-1, StateResult.Return);
+        if (TokenType.Operator == token.Type && "NOT" == token.GetPlSqlText()){
+            ((AstNode)(Childs[Childs.Count - 1])).AddChild(new AstNode(token, "operator"));
+            return (2, StateResult.Continue);
         }
-        switch(token.GetPlSqlText()) {
-            case "NULL":
-                AddChild(new AstNode(token, "null"));
-                return (0, StateResult.Continue);
-            case "NOT":
-                ((AstNode)(Childs[Childs.Count - 1])).AddChild(new AstNode(token, "operator"));
-                return (2, StateResult.Continue);
-            default:
-                #warning error
-                return (-1, StateResult.Return);
+        if(TokenType.Value == token.Type && "NULL" == token.GetPlSqlText()) {
+            AddChild(new AstNode(token, "null"));
+            return (0, StateResult.Continue);
         }
+        #warning error
+        return (-1, StateResult.Return);
     }
 
     protected virtual (int, StateResult) State2(IEnumerator<Token> enumerator) {
         var token = enumerator.Current;
-        if (TokenType.Keyword != token.Type) {
-            #warning error
-            return (-1, StateResult.Return);
-        }
-        if ("NULL" != token.GetPlSqlText()) {
+        if(TokenType.Value != token.Type && "NULL" != token.GetPlSqlText()) {
             #warning error
             return (-1, StateResult.Return);
         }
         AddChild(new AstNode(token, "null"));
-        return (0, StateResult.Continue);            
+        return (0, StateResult.Continue);
     }
 
     protected override void InitStates()
