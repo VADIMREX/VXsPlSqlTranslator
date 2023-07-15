@@ -56,6 +56,7 @@ public abstract class AstNodeParser : AstNode
 
     protected abstract void Parse(IEnumerator<Token> enumerator);
 
+    /// <summary> Get next token and parse them </summary>
     protected virtual void ParseNext(IEnumerator<Token> enumerator)
     {
         int state = 0;
@@ -77,6 +78,7 @@ public abstract class AstNodeParser : AstNode
         }
     }
 
+    /// <summary> Parse current token first, and then move next </summary>
     protected virtual void ParseCurrent(IEnumerator<Token> enumerator)
     {
         int state = 0;
