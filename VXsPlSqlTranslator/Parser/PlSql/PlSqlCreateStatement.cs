@@ -5,14 +5,16 @@ namespace VXs.Parser.PlSql;
 /// <summary>SQL CREATE [OR REPLACE] (PACKAGE|PROCEDURE|FUNCTION|TYPE) statement.</summary>
 public class PlSqlCreateStatement : AstNodeParser
 {
-    protected virtual (int, StateResult) State0PossibleOr(IEnumerator<Token> enumerator)
+    /// <summary>Prossible OR for OR REPLACE</summary>
+    protected virtual (int, StateResult) State0(IEnumerator<Token> enumerator)
     {
         var token = enumerator.Current;
         if ("OR" == token.GetPlSqlText()) return (1, StateResult.Continue);
-        return State2PackageProcedureFunctionType(enumerator);
+        return State2(enumerator);
     }
 
-    protected virtual (int, StateResult) State1Replace(IEnumerator<Token> enumerator)
+    /// <summary>REPLACE modifier</summary>
+    protected virtual (int, StateResult) State1(IEnumerator<Token> enumerator)
     {
         var token = enumerator.Current;
         if ("REPLACE" == token.GetPlSqlText())
@@ -23,8 +25,9 @@ public class PlSqlCreateStatement : AstNodeParser
 #warning todo error
         return (-1, StateResult.Return);
     }
-
-    protected virtual (int, StateResult) State2PackageProcedureFunctionType(IEnumerator<Token> enumerator)
+    
+    /// <summary>PACKAGE PROCEDURE FUNCTION TYPE</summary>
+    protected virtual (int, StateResult) State2(IEnumerator<Token> enumerator)
     {
         var token = enumerator.Current;
         switch (token.GetPlSqlText())
@@ -39,7 +42,7 @@ public class PlSqlCreateStatement : AstNodeParser
                 Childs.Add(new PlSqlFunction(enumerator));
                 break;
             case "TYPE":
-                Childs.Add(new PlSqlFunction(enumerator));
+                Childs.Add(new PlSqlTypeDeclaration(enumerator));
                 break;
             default:
 #warning todo error
@@ -52,9 +55,9 @@ public class PlSqlCreateStatement : AstNodeParser
 
     protected override void InitStates()
     {
-        stateActions.Add(State0PossibleOr);
-        stateActions.Add(State1Replace);
-        stateActions.Add(State2PackageProcedureFunctionType);
+        stateActions.Add(State0);
+        stateActions.Add(State1);
+        stateActions.Add(State2);
     }
 
     public bool WithOrReplace;

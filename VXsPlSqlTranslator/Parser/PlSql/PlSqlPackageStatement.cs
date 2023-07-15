@@ -2,7 +2,7 @@ using VXs.Lexer;
 
 namespace VXs.Parser.PlSql;
 
-/// <summary></summary>
+/// <summary>PlSql PACKAGE or PACKAGE BODY</summary>
 public class PlSqlPackage : PlSqlAnonymousBlock
 {
     protected override (int, StateResult) State0(IEnumerator<Token> enumerator)

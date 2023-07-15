@@ -3,7 +3,7 @@ using VXs.Lexer;
 namespace VXs.Parser.PlSql;
 
 /// <summary></summary>
-public class PlSqlBlock : AstNodeParser
+public class PlSqlBlockStatement : AstNodeParser
 {
     protected TokenType EndType;
     protected string EndText;
@@ -20,7 +20,7 @@ public class PlSqlBlock : AstNodeParser
                         AddChild(new AstNode(token, "null"));
                         break;
                     case "IF":
-                        AddChild(new PlSqlIf(enumerator));
+                        AddChild(new PlSqlIfStatement(enumerator));
                         break;
                     case "CASE":
                         break;
@@ -36,7 +36,7 @@ public class PlSqlBlock : AstNodeParser
                         AddChild(new PlSqlAnonymousBlock(enumerator));
                         break;
                     case "BEGIN":
-                        AddChild(new PlSqlBlock(enumerator));
+                        AddChild(new PlSqlBlockStatement(enumerator));
                         break;
                     case "SELECT":
                         AddChild(new PlSqlSelect(enumerator));
@@ -104,7 +104,7 @@ public class PlSqlBlock : AstNodeParser
     {
         stateActions.Add(State0);
     }
-    public PlSqlBlock(IEnumerator<Token> enumerator, TokenType endType = TokenType.None, string endText = "") : base(enumerator.Current, "block")
+    public PlSqlBlockStatement(IEnumerator<Token> enumerator, TokenType endType = TokenType.None, string endText = "") : base(enumerator.Current, "block")
     {
         EndType = endType;
         EndText = endText;

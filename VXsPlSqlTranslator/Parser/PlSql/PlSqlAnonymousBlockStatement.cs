@@ -2,7 +2,7 @@ using VXs.Lexer;
 
 namespace VXs.Parser.PlSql;
 
-/// <summary></summary>
+/// <summary>Anonymous block DECLARE ... </summary>
 public class PlSqlAnonymousBlock : AstNodeParser
 {
     // public string Name = "";
@@ -17,7 +17,7 @@ public class PlSqlAnonymousBlock : AstNodeParser
 
     public List<PlSqlFunction> Functions = new();
 
-    public PlSqlBlock? Block = null;
+    public PlSqlBlockStatement? Block = null;
 
     protected virtual (int, StateResult) State0(IEnumerator<Token> enumerator)
     {
@@ -39,7 +39,7 @@ public class PlSqlAnonymousBlock : AstNodeParser
 #warning todo cursor
                     return (0, StateResult.Continue);
                 case "BEGIN":
-                    Block = AddChild(new PlSqlBlock(enumerator));
+                    Block = AddChild(new PlSqlBlockStatement(enumerator));
                     return (-1, StateResult.Return);
                 default:
 #warning todo error
@@ -49,6 +49,7 @@ public class PlSqlAnonymousBlock : AstNodeParser
         else if (TokenType.Name == token.Type)
         {
             Variables.Add(AddChild(new PlSqlVariable(enumerator)));
+            #warning todo check on ";"
             return (0, StateResult.Continue);
         }
 #warning todo error

@@ -43,7 +43,7 @@ public class PlSqlParser {
                     res.AddChild(new PlSqlAnonymousBlock(enumerator));
                     break;
                 case "BEGIN":
-                    res.AddChild(new PlSqlBlock(enumerator));
+                    res.AddChild(new PlSqlBlockStatement(enumerator));
                     break;
                 // Обработка конца ???
                 case "END":

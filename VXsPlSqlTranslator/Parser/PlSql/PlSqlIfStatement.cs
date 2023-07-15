@@ -3,10 +3,10 @@ using VXs.Lexer;
 namespace VXs.Parser.PlSql;
 
 /// <summary></summary>
-public class PlSqlIf : AstNodeParser
+public class PlSqlIfStatement : AstNodeParser
 {
     public List<PlSqlExpression> Conditions = new();
-    public List<PlSqlBlock> Blocks = new();
+    public List<PlSqlBlockStatement> Blocks = new();
 
     protected (PlSqlExpression? condition, AstNode actions) currentBlock;
 
@@ -18,7 +18,7 @@ public class PlSqlIf : AstNodeParser
 
     protected virtual (int, StateResult) State1(IEnumerator<Token> enumerator)
     {
-        Blocks.Add(AddChild(new PlSqlBlock(enumerator)));
+        Blocks.Add(AddChild(new PlSqlBlockStatement(enumerator)));
         var token = enumerator.Current;
         return (0, StateResult.Continue);
     }
@@ -31,7 +31,7 @@ public class PlSqlIf : AstNodeParser
         stateActions.Add(State1);
     }
 
-    public PlSqlIf(IEnumerator<Token> enumerator) : base(enumerator.Current, "if")
+    public PlSqlIfStatement(IEnumerator<Token> enumerator) : base(enumerator.Current, "if")
     {
 
     }

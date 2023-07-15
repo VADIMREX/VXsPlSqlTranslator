@@ -3,7 +3,7 @@ using VXs.Lexer;
 namespace VXs.Parser.PlSql;
 
 /// <summary></summary>
-public class PlSqlLoop : PlSqlBlock
+public class PlSqlLoop : PlSqlBlockStatement
 {
     protected override (int, StateResult) State0(IEnumerator<Token> enumerator)
     {
