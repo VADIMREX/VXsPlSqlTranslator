@@ -13,14 +13,27 @@ public class PlSqlIfStatement : AstNodeParser
     protected virtual (int, StateResult) State0(IEnumerator<Token> enumerator)
     {
         Conditions.Add(AddChild(new PlSqlExpression(enumerator, TokenType.Keyword, "THEN")));
-        return (1, StateResult.Continue);
+        return State1(enumerator);
     }
 
     protected virtual (int, StateResult) State1(IEnumerator<Token> enumerator)
     {
         Blocks.Add(AddChild(new PlSqlBlockStatement(enumerator)));
         var token = enumerator.Current;
-        return (0, StateResult.Continue);
+        if (TokenType.Keyword == token.Type) {
+            if ("ELSE" == token.GetPlSqlText()) {
+                return State1(enumerator);
+            }
+            if ("ELSIF" == token.GetPlSqlText()) {
+                return (0, StateResult.Continue);
+            }
+            if ("IF" == token.GetPlSqlText()) {
+                enumerator.MoveNext();
+                return (-1, StateResult.Return);
+            }
+        }
+        #warning error
+        return (-1, StateResult.Return);
     }
 
     protected override void Parse(IEnumerator<Token> enumerator) => ParseNext(enumerator);
@@ -33,6 +46,7 @@ public class PlSqlIfStatement : AstNodeParser
 
     public PlSqlIfStatement(IEnumerator<Token> enumerator) : base(enumerator.Current, "if")
     {
-
+        InitStates();
+        Parse(enumerator);
     }
 }

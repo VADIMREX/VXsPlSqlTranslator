@@ -60,7 +60,6 @@ public class PlSqlBlockStatement : AstNodeParser
                         return (-1, StateResult.Return);
                     case "END":
                         End(enumerator);
-                        enumerator.MoveNext();
                         return (-1, StateResult.Return);
                     default:
                         AddChild(new PlSqlExpression(enumerator));
@@ -93,6 +92,10 @@ public class PlSqlBlockStatement : AstNodeParser
             }
             if (TokenType.Special == token.Type)
             {
+                enumerator.MoveNext();
+                return;
+            }
+            if (TokenType.Keyword == token.Type) {
                 return;
             }
         }
