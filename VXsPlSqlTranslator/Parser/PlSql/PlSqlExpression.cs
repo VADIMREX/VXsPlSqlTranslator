@@ -48,6 +48,7 @@ public class PlSqlExpression : AstNodeParser
             case "(":
                 enumerator.MoveNext();
                 AddChild(new PlSqlExpression(enumerator, TokenType.Special, ")"));
+                enumerator.MoveNext();
                 return (-1, StateResult.Return);
             case ")":
                 AddChild(new AstNode(token, "null"));
