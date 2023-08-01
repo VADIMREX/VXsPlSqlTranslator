@@ -35,7 +35,7 @@ public class AstNode : IAstNode
         var sb = new StringBuilder();
         sb.AppendLine($"{new string(' ', level * 4)}{StartToken}: {Type}");
         foreach (var node in Childs)
-            sb.AppendLine(node.ToString(level + 1));
+            sb.Append(node.ToString(level + 1));
         return sb.ToString();
     }
 
